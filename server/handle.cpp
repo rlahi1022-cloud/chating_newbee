@@ -9,6 +9,7 @@
 #include <thread>
 #include <mutex>
 #include <mysql.h>
+#include "proto.h"
 
 // std:: shared_ptr<ChatClient> client :메모리 관리를 사람이 직접 하지 않고 시스템이 자동으로 하게 만들기 위해서 사용
 // -> molloc 을 대체하는 기능 : std:: shcared_prt : 공유되는 포인터
@@ -28,7 +29,8 @@ void handle_packet(std::shared_ptr<ChatClient> client, const std::string& msg)
         json packet = json::parse(msg);
         int type = packet.value("type", 0); // -> 숫자로 입력 받게 해서 swich 문을 쓰게하자
 
-        if (type == "LOGIN_REQ") // -> 프로토콜 헤더가 필요할거같다
+        switch (type)
+        case PKT_LOGIN_REQ:
         {
             client->user_id = packet["payload"]["id"];
             std::cout << "[로그인] " << client->user_id << " 접속\n";
@@ -40,6 +42,7 @@ void handle_packet(std::shared_ptr<ChatClient> client, const std::string& msg)
             std::string out = res.dump();
             send(client->sock, out.c_str(), out.length(), 0);
         }
+        break;
     } 
     catch (const std::exception& e) 
     {
