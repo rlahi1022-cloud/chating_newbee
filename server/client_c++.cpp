@@ -56,9 +56,11 @@ int main()
     if (len > 0) 
     {
         buffer[len] = '\0';
-        try {
+        try 
+        {
             json res = json::parse(buffer);
-            if (res["type"] == "LOGIN_RES") {
+            if (res["type"] == "LOGIN_RES") 
+            {
                 std::string result = res["payload"]["result"];
                 std::cout << "로그인 결과: " << result << std::endl;
                 
