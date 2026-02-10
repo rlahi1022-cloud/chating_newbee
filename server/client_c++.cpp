@@ -24,7 +24,8 @@ int main()
     serv_addr.sin_port = htons(5003);                  // 서버 포트
 
     // 3. 서버 연결
-    if (connect(sock, (struct sockaddr*)&serv_addr, sizeof(serv_addr)) == -1) {
+    if (connect(sock, (struct sockaddr*)&serv_addr, sizeof(serv_addr)) == -1) 
+    {
         std::cerr << "서버 연결 실패" << std::endl;
         return 1;
     }
@@ -65,7 +66,9 @@ int main()
                     // 여기에 메뉴 로직 추가 가능
                 }
             }
-        } catch (const std::exception& e) {
+        } 
+        catch (const std::exception& e) 
+        {
             std::cerr << "응답 파싱 에러: " << e.what() << std::endl;
         }
     }
