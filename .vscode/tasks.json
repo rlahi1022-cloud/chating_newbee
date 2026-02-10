@@ -1,35 +1,36 @@
 {
+    "version": "2.0.0",
     "tasks": [
         {
             "type": "cppbuild",
-            "label": "C/C++: g++ 활성 파일 빌드",
+            "label": "Build SERVER",
             "command": "/usr/bin/g++",
             "args": [
                 "-fdiagnostics-color=always",
                 "-g",
-                "${file}",
-                "-o",
-                "${fileDirname}/${fileBasenameNoExtension}",
-                "../server/server_c++.cpp",
-                "../server/handle.cpp",
-                "../server/proto.h",
+                "${fileDirname}/server_c++.cpp",
+                "${fileDirname}/handle.cpp",
+                "-o", "${fileDirname}/server_app",
                 "-I/usr/include/mariadb",
                 "-lmariadb",
                 "-lpthread",
                 "-std=c++11"
             ],
-            "options": {
-                "cwd": "${fileDirname}"
-            },
-            "problemMatcher": [
-                "$gcc"
+            "group": "build"
+        },
+        {
+            "type": "cppbuild",
+            "label": "Build CLIENT",
+            "command": "/usr/bin/g++",
+            "args": [
+                "-fdiagnostics-color=always",
+                "-g",
+                "${fileDirname}/client.cpp", // 경로 확인 필요!
+                "-o", "${fileDirname}/client_app",
+                "-lpthread",
+                "-std=c++11"
             ],
-            "group": {
-                "kind": "build",
-                "isDefault": true
-            },
-            "detail": "디버거에서 생성된 작업입니다."
+            "group": "build"
         }
-    ],
-    "version": "2.0.0"
+    ]
 }

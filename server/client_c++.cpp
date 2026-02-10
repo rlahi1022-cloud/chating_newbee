@@ -6,7 +6,7 @@
 #include "proto.h"
 #include "handle.h"
 
-using json = nlohmann::json;
+using namespace nlohmann;
 
 int main() 
 {

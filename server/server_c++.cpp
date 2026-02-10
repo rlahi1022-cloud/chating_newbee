@@ -11,36 +11,13 @@
 #include <mysql.h>
 #include "proto.h"
 
+using namespace nlohmann;
 
-using json = nlohmann::json; 
 MYSQL* conn = nullptr; // db 연결 포인터 : 통로를 연결해줘야됨 -> 초반에 열어두고 입력 검증에 반응해서 검증 및 데이터를 집어넣음 : 회원가입을 위해서 초기화를 시켜줌
 
-class ChatClient // 클라이언트 정보를 담는소켓 : c++에서는 클래스에 자동 소멸까지 담을 수있음
-{
-    public:
-    int sock;
-    std:: string user_id;
-    std:: string nickname;
-    int room_id = -1;
-    int state = 0;
 
-    ChatClient (int s) : sock(s) {}
 
-    void update_from_json(const nlohmann::json& payload) 
-    {
-        if (payload.contains("id")) user_id = payload["id"];
-        if (payload.contains("nickname")) nickname = payload["nickname"];
-    }
-
-    ~ChatClient ()
-    {
-        if (sock != -1)
-        close(sock);
-        std::cout << "클라이언트 객체 소멸 (ID: " << user_id << ")\n";
-    }
-};
-
-#include "handle.h"
+#include "handle.h" // 클래스 정의가 끝나야 핸들함수 쓸수있음
 
 // 접속자 명단 : c 배열 대신 map을 사용함
 std:: map <int, std::shared_ptr<ChatClient>> clients;
