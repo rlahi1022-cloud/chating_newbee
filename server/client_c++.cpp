@@ -3,6 +3,8 @@
 #include <arpa/inet.h>
 #include <unistd.h>
 #include <nlohmann/json.hpp> // json을 쓰기위해서 필요한 라이브러리
+#include "proto.h"
+#include "handle.h"
 
 using json = nlohmann::json;
 
@@ -48,7 +50,7 @@ int main()
     std::string send_msg = login_packet.dump();
     send(sock, send_msg.c_str(), send_msg.length(), 0);
 
-    // 7. 서버 응답 수신
+    //  서버 응답 수신
     char buffer[1024];
     int len = recv(sock, buffer, sizeof(buffer) - 1, 0);
     if (len > 0) 
@@ -68,7 +70,7 @@ int main()
         } 
         catch (const std::exception& e) 
         {
-            std::cerr << "응답 파싱 에러: " << e.what() << std::endl;
+            std::cerr << "응답 파싱 에러: " << e.what() << std::endl
         }
     }
 
