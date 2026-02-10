@@ -10,6 +10,8 @@
 #include <mutex>
 #include <mysql.h>
 #include "proto.h"
+#include "handle.h" // 클래스 정의가 끝나야 핸들함수 쓸수있음
+// #include "handle.cpp" // 클래스 정의가 끝나야 핸들함수 쓸수있음
 
 using namespace nlohmann;
 
@@ -17,11 +19,9 @@ MYSQL* conn = nullptr; // db 연결 포인터 : 통로를 연결해줘야됨 -> 
 
 
 
-#include "handle.h" // 클래스 정의가 끝나야 핸들함수 쓸수있음
-
 // 접속자 명단 : c 배열 대신 map을 사용함
-std:: map <int, std::shared_ptr<ChatClient>> clients;
-std:: mutex clients_mutex; // 여러스레드가 동시에 접근할때 사용하는 뮤텍스
+extern std:: map <int, std::shared_ptr<ChatClient>> clients;
+extern std:: mutex clients_mutex; // 여러스레드가 동시에 접근할때 사용하는 뮤텍스
 
 int main ()
 {

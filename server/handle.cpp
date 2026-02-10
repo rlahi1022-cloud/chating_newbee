@@ -12,7 +12,12 @@
 #include "proto.h"
 #include "handle.h"
 
+
 using namespace nlohmann;
+
+// 접속자 명단 : c 배열 대신 map을 사용함
+std:: map <int, std::shared_ptr<ChatClient>> clients;
+std:: mutex clients_mutex; // 여러스레드가 동시에 접근할때 사용하는 뮤텍스
 
 //=================================================================
 class ChatClient // 클라이언트 정보를 담는소켓 : c++에서는 클래스에 자동 소멸까지 담을 수있음

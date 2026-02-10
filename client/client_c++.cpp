@@ -3,9 +3,7 @@
 #include <arpa/inet.h>
 #include <unistd.h>
 #include <nlohmann/json.hpp> // json을 쓰기위해서 필요한 라이브러리
-#include "proto.h"
-#include "handle.h"
-
+#include "../server/proto.h"
 using namespace nlohmann;
 
 int main() 
@@ -23,7 +21,7 @@ int main()
     serv_addr.sin_family = AF_INET;
     serv_addr.sin_addr.s_addr = inet_addr("127.0.0.1"); // 서버 IP
     serv_addr.sin_port = htons(5003);                  // 서버 포트
-
+    printf("여기");
     // 서버 연결
     if (connect(sock, (struct sockaddr*)&serv_addr, sizeof(serv_addr)) == -1) 
     {
@@ -72,7 +70,7 @@ int main()
         } 
         catch (const std::exception& e) 
         {
-            std::cerr << "응답 파싱 에러: " << e.what() << std::endl
+            std::cerr << "응답 파싱 에러: " << e.what() << std::endl;
         }
     }
 

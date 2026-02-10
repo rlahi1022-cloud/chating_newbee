@@ -8,8 +8,9 @@
             "args": [
                 "-fdiagnostics-color=always",
                 "-g",
-                "${fileDirname}/server_c++.cpp",
-                "${fileDirname}/handle.cpp",
+                "${file}",
+                // "${fileDirname}/server_c++.cpp",
+                "${fileDirname}/../server/handle.cpp",
                 "-o", "${fileDirname}/server_app",
                 "-I/usr/include/mariadb",
                 "-lmariadb",
@@ -25,7 +26,7 @@
             "args": [
                 "-fdiagnostics-color=always",
                 "-g",
-                "${fileDirname}/client.cpp", // 경로 확인 필요!
+                "${fileDirname}/client_c++.cpp", // 경로 확인 필요!
                 "-o", "${fileDirname}/client_app",
                 "-lpthread",
                 "-std=c++11"
