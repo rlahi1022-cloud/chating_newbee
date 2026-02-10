@@ -6,12 +6,13 @@
             "label": "Build SERVER",
             "command": "/usr/bin/g++",
             "args": [
+                "-DSERVER_BUILD",
                 "-fdiagnostics-color=always",
                 "-g",
-                "${file}",
-                // "${fileDirname}/server_c++.cpp",
-                "${fileDirname}/../server/handle.cpp",
-                "-o", "${fileDirname}/server_app",
+                "${workspaceFolder}/server/server_main.cpp",
+                "${workspaceFolder}/server/handle.cpp",
+                "-o", 
+                "${workspaceFolder}/server/server_app",
                 "-I/usr/include/mariadb",
                 "-lmariadb",
                 "-lpthread",
@@ -26,12 +27,17 @@
             "args": [
                 "-fdiagnostics-color=always",
                 "-g",
-                "${fileDirname}/client_c++.cpp", // 경로 확인 필요!
-                "-o", "${fileDirname}/client_app",
+                "${workspaceFolder}/client/client_cplus.cpp",
+                "${workspaceFolder}/client/client_handle.cpp",
+                "-o", 
+                "${workspaceFolder}/client/client_app",
                 "-lpthread",
                 "-std=c++11"
             ],
-            "group": "build"
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
         }
     ]
 }
