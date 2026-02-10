@@ -4,12 +4,11 @@
 #include <unistd.h>
 #include <nlohmann/json.hpp> // json을 쓰기위해서 필요한 라이브러리
 
-
 using json = nlohmann::json;
 
 int main() 
 {
-    // 1. 소켓 생성
+    // 소켓 생성
     int sock = socket(PF_INET, SOCK_STREAM, 0);
     if (sock == -1) 
     {
@@ -17,13 +16,13 @@ int main()
         return 1;
     }
 
-    // 2. 서버 주소 설정 (리눅스 로컬 환경 기준)
+    // 서버 주소 설정 (리눅스 로컬 환경 기준)
     sockaddr_in serv_addr{};
     serv_addr.sin_family = AF_INET;
     serv_addr.sin_addr.s_addr = inet_addr("127.0.0.1"); // 서버 IP
     serv_addr.sin_port = htons(5003);                  // 서버 포트
 
-    // 3. 서버 연결
+    // 서버 연결
     if (connect(sock, (struct sockaddr*)&serv_addr, sizeof(serv_addr)) == -1) 
     {
         std::cerr << "서버 연결 실패" << std::endl;
@@ -31,12 +30,12 @@ int main()
     }
     std::cout << "서버에 연결되었습니다.\n";
 
-    // 4. 로그인 정보 입력
+    // 로그인 정보 입력
     std::string id, pw;
     std::cout << "ID: "; std::cin >> id;
     std::cout << "PW: "; std::cin >> pw;
 
-    // 5. 서버 프로토콜에 맞게 JSON 패킷 생성
+    // 서버 프로토콜에 맞게 JSON 패킷 생성
     json login_packet;
     login_packet["type"] = "LOGIN_REQ";
     login_packet["payload"] = 
@@ -45,7 +44,7 @@ int main()
         {"pw", pw}
     };
 
-    // 6. JSON을 문자열로 변환(dump)하여 전송
+    // JSON을 문자열로 변환(dump)하여 전송
     std::string send_msg = login_packet.dump();
     send(sock, send_msg.c_str(), send_msg.length(), 0);
 
