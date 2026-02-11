@@ -1,8 +1,12 @@
 #pragma once
+
 #ifdef SERVER_BUILD
     #include <mysql.h>
     extern MYSQL* conn;
+    extern std::map<int, std::shared_ptr<ChatClient>> clients;
+    extern std::mutex clients_mutex;
 #endif
+
 #include <map>          // std::map을 쓰기 위해 필요
 #include <mutex>        // std::mutex를 쓰기 위해 필요
 #include <memory>       // std::shared_ptr을 쓰기 위해 필요
@@ -48,8 +52,7 @@ class ChatClient
     }
 };
 
-extern std::map<int, std::shared_ptr<ChatClient>> clients;
-extern std::mutex clients_mutex;
+
 
 // 패킷 타입 정의 (JSON의 "type"에 들어갈 숫자)
 #define PKT_LOGIN_REQ      1    // 로그인 요청

@@ -11,7 +11,7 @@ using namespace nlohmann;
 json request_to_server(int sock, const json& req_packet) 
 {
     try {
-        // 여기서 직렬화(dump)를 처리해버립니다.
+        // 여기서 직렬화(dump)를 처리해버림.
         std::string send_msg = req_packet.dump();
         
         //  전송
