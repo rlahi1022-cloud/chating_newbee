@@ -9,16 +9,23 @@
                 "-DSERVER_BUILD",
                 "-fdiagnostics-color=always",
                 "-g",
-                "${workspaceFolder}/server/server_main.cpp",
+                "${workspaceFolder}/server/serve_cplus.cpp",
                 "${workspaceFolder}/server/handle.cpp",
-                "-o", 
+                "-o",
                 "${workspaceFolder}/server/server_app",
                 "-I/usr/include/mariadb",
-                "-lmariadb",
+                "-I/usr/include/mariadb/mysql",
+                "-L/usr/lib/x86_64-linux-gnu",
+                "-no-pie",
+                "-std=c++11",
                 "-lpthread",
-                "-std=c++11"
+                "-lmariadbcpp",
+                "-lmariadb"
             ],
-            "group": "build"
+            "options": {
+                "cwd": "${workspaceFolder}/server"
+            },
+            "problemMatcher": ["$gcc"]
         },
         {
             "type": "cppbuild",
@@ -29,15 +36,46 @@
                 "-g",
                 "${workspaceFolder}/client/client_cplus.cpp",
                 "${workspaceFolder}/client/client_handle.cpp",
-                "-o", 
+                "-o",
                 "${workspaceFolder}/client/client_app",
+                "-I${workspaceFolder}/server",
                 "-lpthread",
                 "-std=c++11"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}/client"
+            },
+            "problemMatcher": ["$gcc"]
+        },
+        {
+            "label": "Build ALL",
+            "dependsOn": [
+                "Build SERVER",
+                "Build CLIENT"
             ],
             "group": {
                 "kind": "build",
                 "isDefault": true
-            }
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "Run SERVER",
+            "type": "shell",
+            "command": "${workspaceFolder}/server/server_app",
+            "options": {
+                "cwd": "${workspaceFolder}/server"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "Run CLIENT",
+            "type": "shell",
+            "command": "${workspaceFolder}/client/client_app",
+            "options": {
+                "cwd": "${workspaceFolder}/client"
+            },
+            "problemMatcher": []
         }
     ]
 }

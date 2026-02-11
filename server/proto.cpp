@@ -8,7 +8,7 @@
 #include <unistd.h>
 #include <thread>
 #include <mutex>
-#include <mysql.h>
+#include <mariadb/conncpp.hpp>
 #include "proto.h"
 #include "handle.h" // 클래스 정의가 끝나야 핸들함수 쓸수있음
 // #include "handle.cpp" // 클래스 정의가 끝나야 핸들함수 쓸수있음

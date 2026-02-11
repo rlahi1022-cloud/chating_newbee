@@ -1,83 +1,117 @@
 #pragma once
 
+#include <iostream>
+#include <string>
+#include <vector>
+#include <memory>
+#include <mutex>
+#include <map>
+#include <unistd.h>
+#include <nlohmann/json.hpp>
+
+/* ============================================================
+   서버 전용 설정 (SERVER_BUILD 정의 시 활성화)
+   ============================================================ */
 #ifdef SERVER_BUILD
-    #include <mysql.h>
-    extern MYSQL* conn;
+    #include <mariadb/conncpp.hpp>
+    class ChatClient;
+    extern std::shared_ptr<sql::Connection> conn;
     extern std::map<int, std::shared_ptr<ChatClient>> clients;
     extern std::mutex clients_mutex;
 #endif
 
-#include <map>          // std::map을 쓰기 위해 필요
-#include <mutex>        // std::mutex를 쓰기 위해 필요
-#include <memory>       // std::shared_ptr을 쓰기 위해 필요
-#include <string>       // std::string을 쓰기 위해 필요
-#include <nlohmann/json.hpp>
+/* ============================================================
+    시스템 설정 및 제한
+   ============================================================ */
+#define SERVER_PORT     5003     // 현재 사용 중인 포트
+#define MAX_CLIENT      100     // 접속제한
+#define BUFFER_SIZE     1024    // 버퍼제한
+#define MAX_USER_ID     20      // 아이디제한
+#define MAX_NICKNAME    100     //닉네임길이제한
 
+/* ============================================================
+   패킷 타입 정의 (JSON "type" 필드값)
+   ============================================================ */
+// 사용자 관리 (300번대)
+#define PKT_SIGNUP_REQ     300   // 회원가입 요청
+#define PKT_SIGNUP_RES     301   // 회원가입 응답
+#define PKT_LOGIN_REQ      302   // 로그인 요청
+#define PKT_LOGIN_RES      303   // 로그인 응답
+#define PKT_ID_CHECK_REQ   304   // 아이디 중복 확인 요청
+#define PKT_ID_CHECK_RES   305   // 아이디 중복 확인 응답
+#define PKT_NICK_CHECK_REQ 306   // 닉네임 중복 확인 요청
+#define PKT_NICK_CHECK_RES 307   // 닉네임 중복 확인 응답
 
-// std:: shared_ptr<ChatClient> client :메모리 관리를 사람이 직접 하지 않고 시스템이 자동으로 하게 만들기 위해서 사용
-// -> molloc 을 대체하는 기능 : std:: shcared_prt : 공유되는 포인터
-// -> client 들이 전부 같은곳을 바라보게한다
+// 개인 설정 및 상태 (310번대)
+#define PKT_NICK_CHANGE_REQ 310  // 닉네임 변경 요청
+#define PKT_NICK_CHANGE_RES 311  // 닉네임 변경 응답
+#define PKT_SETTING_UPDATE_REQ 320 // 통합 설정 변경 요청
+#define PKT_SETTING_UPDATE_RES 322 // 설정 변경 응답
 
-// std::map<int, shared_ptr> : 
-// c와 다르게 접속자를 찾을 때 for문을 돌며 빈자리를 찾을 필요 없음. 소켓 번호만 알면 바로 접근 가능
+// 채팅방 및 메시지 (100번대)
+#define PKT_ROOM_LIST_REQ   102  // 채팅방 목록 요청
+#define PKT_ROOM_LIST_RES   103  // 채팅방 목록 응답
+#define PKT_ROOM_ENTER_REQ  104  // 채팅방 입장 요청
+#define PKT_ROOM_ENTER_RES  105  // 채팅방 입장 응답
+#define PKT_CHAT_MESSAGE    110  // 채팅 메시지 전송
+#define PKT_ROOM_EXIT_REQ   112  // 채팅방 퇴장 요청
 
-// json::parse(): sscanf 대신 이 한 줄로 모든 데이터를 읽음. 
-// 데이터 형식이 바뀌어도 json을 사용한다면 변경 필요 x.
+/*===========================================================
+            중복검사
+========================================*/
+#define PKT_ID_CHECK_REQ   304   // 아이디 중복 확인 요청
+#define PKT_ID_CHECK_RES   305   // 아이디 중복 확인 응답
+#define PKT_NICK_CHECK_REQ 306   // 닉네임 중복 확인 요청
+#define PKT_NICK_CHECK_RES 307   // 닉네임 중복 확인 응답
+#define PKT_SIGNUP_REQ     300   // 최종 회원가입 요청
+#define PKT_SIGNUP_RES     301   // 최종 회원가입 응답
 
- // inline : 헤더 파일을 여러 .cpp 파일에서 인클루드하면, 링크 단계에서 "중복 정의(Multiple Definition)" 에러가 발생. 각 .cpp 파일이 자신만의 함수 실행 파일을 만들기 때문에 중복방지 기능
- 
+/* ============================================================
+   상태 및 결과 코드
+   ============================================================ */
+// [Client State]
+#define STATE_NONE         0    // 접속 직후 (미인증)
+#define STATE_LOBBY        1    // 로그인 완료 (로비 상태)
+#define STATE_CHAT         2    // 채팅방 내부
+#define STATE_SETTING      3    // 개인설정 메뉴
+
+// [Result Strings]
+#define RES_SUCCESS        "success"
+#define RES_FAIL           "fail"
+#define RES_DUPLICATE      "duplicate"
+#define RES_AVAILABLE      "available"
+#define RES_DB_ERROR       "db_error"
+
+/* ============================================================
+   클라이언트 세션 관리 클래스
+   ============================================================ */
 class ChatClient 
 {
-    public:
+public:
     int sock;
     std::string user_id;
     std::string nickname;
     int room_id = -1;
-    int state = 0;
+    int state = STATE_NONE;
 
-    // 구현부 앞에 inline 추가
     inline ChatClient(int s) : sock(s) {}
 
     inline void update_from_json(const nlohmann::json& payload) 
     {
-        if (payload.contains("id")) user_id = payload["id"];
-        if (payload.contains("nickname")) nickname = payload["nickname"];
+        if (payload.contains("id")) user_id = payload.get<std::string>();
+        if (payload.contains("nickname")) nickname = payload.get<std::string>();
     }
 
     inline ~ChatClient()
     {
-        if (sock != -1)
+        if (sock != -1) 
+        {
             ::close(sock);
-        std::cout << "클라이언트 객체 소멸 (ID: " << user_id << ")\n";
+        }
+        // 서버 로그용 (사용자 ID가 있을 때만 출력)
+        if (!user_id.empty()) 
+        {
+            std::cout << "클라이언트 객체 소멸 (ID: " << user_id << ")\n";
+        }
     }
 };
-
-
-
-// 패킷 타입 정의 (JSON의 "type"에 들어갈 숫자)
-#define PKT_LOGIN_REQ      1    // 로그인 요청
-#define PKT_LOGIN_RES      101  // 로그인 응답
-
-#define PKT_SIGNUP_REQ     2    // 회원가입 요청
-#define PKT_SIGNUP_RES     102  // 회원가입 응답
-
-#define PKT_CHAT_MSG       3    // 채팅 메시지 전송
-#define PKT_ROOM_ENTER     4    // 채팅방 입장 요청
-#define PKT_ROOM_EXIT      5    // 채팅방 퇴장 요청
-
-// [Client State Numbers] 상태 
-#define STATE_NONE         0    // 접속 직후 (미인증)
-#define STATE_LOGIN        1    // 로그인 완료 (로비 상태)
-#define STATE_CHAT         2    // 채팅방 내부
-#define STATE_SETTING      3    // 개인설정 메뉴
-
-// [Data Limits] 제한
-#define MAX_USER_ID        20   // ID 최대 길이
-#define MAX_NICKNAME       100  // 닉네임 최대 길이
-#define BUFFER_SIZE        1024 // 통신 버퍼 크기
-
-// 응답 결과 코드
-#define RES_SUCCESS       "success"
-#define RES_FAIL          "fail"
-#define RES_DUPLICATE_ID   "duplicate_id"  // 아이디 중복 시
-#define RES_DB_ERROR       "db_error"      // DB 서버 문제 시
