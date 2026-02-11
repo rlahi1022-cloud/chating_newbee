@@ -67,6 +67,7 @@ int main()
 
                 // test용 변수
                 login_in = true;
+                break;
 
                 // 서버 프로토콜에 맞게 JSON 패킷 생성
                 json login_packet;
