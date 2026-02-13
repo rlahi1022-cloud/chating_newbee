@@ -5,6 +5,7 @@
 #include <nlohmann/json.hpp> // json을 쓰기위해서 필요한 라이브러리
 #include "../server/proto.h"
 #include "client_handle.h"
+#include "client_chat.h"
 
 using namespace nlohmann;
 
@@ -32,29 +33,34 @@ int main()
     sockaddr_in serv_addr{};
     serv_addr.sin_family = AF_INET;
     serv_addr.sin_addr.s_addr = inet_addr("127.0.0.1"); // 서버 IP
-    serv_addr.sin_port = htons(5003);                  // 서버 포트
+    serv_addr.sin_port = htons(SERVER_PORT);                  // 서버 포트
     // 서버 연결
     if (connect(sock, (struct sockaddr*)&serv_addr, sizeof(serv_addr)) == -1) 
     {
         std::cerr << "서버 연결 실패" << std::endl;
         return 1;
     }
-    std::cout << "서버에 연결되었습니다.\n";
+    std::cout << "===============================================================\n";
+    std::cout << " 서버에 연결되었습니다.\n";
+    std::cout << "===============================================================\n";
 
     while(running)
     {
         // 여기는 회원가입/ 로그인만 반복 !
         while (running && !login_in)
         {
-            std::cout <<" welcome test chating server \n";
+            std::cout <<" \n welcome test chating server \n";
+            std::cout << "===============================================================\n";
             std::cout << " 메뉴 \n\n";
-            std::cout << "1. login  2. 회원가입 3.종료 \n";
-            std::cout <<"입력 : ";
+            std::cout << "1. login  2. 회원가입 3. 종료 \n";
+            std::cout <<"[입력] : ";
             std::cin >> choice;
 
             if (choice == 3) 
             {
+                std::cout << "===============================================================\n";
                 std::cout << "\n프로그램 종료\n";
+                std::cout << "===============================================================\n";
                 running = false;
                 break;
             }
@@ -74,8 +80,9 @@ int main()
 
                 // 서버 프로토콜에 맞게 JSON 패킷 생성
                 json login_packet;
-                login_packet["type"] = "LOGIN_REQ";
-                login_packet["payload"] = 
+
+                login_packet["type"] = PKT_LOGIN_REQ;   // 문자열 삭제
+                login_packet["payload"] =
                 {
                     {"id", id},
                     {"pw", pw}
@@ -86,12 +93,15 @@ int main()
                 // 결과 
                 if (res["payload"]["result"] == "success") 
                 {
+                    std::cout << "===============================================================\n";
                     std::cout << "[완료] 로그인 성공!\n";
+
                     login_in = true;
                     break;
                 } 
                 else 
                 {
+                    std::cout << "===============================================================\n";
                     std::cout << "[오류] 로그인 실패: " << res["payload"]["result"] << "\n";
                     continue;
                 }
@@ -105,6 +115,7 @@ int main()
                 // 아이디 중복 검사 : 서버랑 소통필요
                 while (true) 
                 {
+                    std::cout << "===============================================================\n";
                     std::cout << "[입력] 사용할 ID: "; 
                     std::cin >> id;
                     
@@ -114,21 +125,29 @@ int main()
                     
                     json res = request_to_server(sock, id_pkt); // 아이디 중복검사 송신 : 디비에 저장된 아이디를 검사함
                     
-                    if (res["payload"]["result"] == RES_AVAILABLE) {
+                    if (res["payload"]["result"] == RES_AVAILABLE) 
+                    {
+                        std::cout << "===============================================================\n";
                         std::cout << ">> 사용 가능한 아이디입니다.\n";
+                        std::cout << "===============================================================\n";
                         break; //
                     }
+                    std::cout << "===============================================================\n";
                     std::cout << ">> [경고] 이미 사용 중인 아이디입니다.\n";
+                    std::cout << "===============================================================\n";
                 }
 
                 //비밀번호 입력 및 자체 검증 : 서버에서 하는건 비효율적
                 while (true) 
                 {
+                    std::cout << "===============================================================\n";
                     std::cout << "[입력] 비밀번호(영문+숫자 혼합): "; std::cin >> pw;
+                    std::cout << "===============================================================\n";
                     std::cout << "[입력] 비밀번호 확인: "; std::cin >> pw_confirm;
 
                     if (pw != pw_confirm) 
                     {
+                        std::cout << "===============================================================\n";
                         std::cout << ">> [오류] 비밀번호가 서로 일치하지 않습니다.\n";
                         continue;
                     }
@@ -143,6 +162,7 @@ int main()
                 //닉네임 중복 검사  : 서버랑 소통해야됨
                 while (true) 
                 {
+                    std::cout << "===============================================================\n";
                     std::cout << "[입력] 사용할 닉네임: "; std::cin >> nickname;
                     
                     json nick_pkt;
@@ -168,12 +188,16 @@ int main()
 
                 if (res["payload"]["result"] == RES_SUCCESS) 
                 {
+                    std::cout << "===============================================================";
                     std::cout << "\n[완료] 가입 성공! 이제 로그인해 주세요.\n";
+                    std::cout << "===============================================================";
                     break;
                 } 
                 else 
                 {
+                    std::cout << "===============================================================";
                     std::cout << "\n[경고] 가입 실패: " << res["payload"]["result"] << "\n";
+                    std::cout << "===============================================================";
                 }
             }
         }
@@ -181,28 +205,176 @@ int main()
         // 로그인/ 회원가입 반복문을 빠져나오면 채팅방 및 설정 메뉴 반복문 생성 예정
         while (login_in && running)
         {
+            std::cout << "===============================================================\n";
             std::cout << " 메뉴 \n\n";
+            std::cout << "===============================================================\n";
             std::cout << "1. 채팅방  2. 메시지 3. 개인설정 4. 로그아웃 5. 프로그램 종료 \n";
+            std::cout << "[입력] : ";
             std::cin >> choice;
 
-            if (choice == 3)
-            {
-                login_in = false; // 전체 구조를 깨진않지만 로그인으로 돌아가는 변수
-                std::cout << " LOG OUT \n";
-            }
             if (choice == 4)
             {
+                login_in = false; // 전체 구조를 깨진않지만 로그인으로 돌아가는 변수
+                std::cout << "===============================================================\n";
+                std::cout << "\n LOG OUT \n";
+                std::cout << "===============================================================\n";
+            }
+            if (choice == 5)
+            {
+                std::cout << "===============================================================\n";
+                std::cout << "program out\n";
+                std::cout << "===============================================================\n";
                 running = false; // 전체 구조를 깨는 변수
-                std::cout << "program out";
-                break;
             }
 
             // ============== 종료키는 누르면 바로 종료될수있게==============
             
             if (choice == 1)
             {
-                std::cout << " 채팅방 목록 \n";
-                break; // 아직 통신은 없음
+                json list_req; //생성
+
+                list_req["type"] = PKT_ROOM_LIST_REQ; // 요청
+                std::cout << "받은 type: " << list_req["type"] << std::endl;
+                json res = request_to_server(sock, list_req);
+                
+                if (res["type"] == PKT_ROOM_LIST_RES)
+                {
+                    auto rooms = res["payload"]["rooms"];
+
+                    std::cout << "=== 채팅방 목록 ===\n";
+
+                    for (auto& r : rooms)
+                    {
+                        std::cout << "방 번호: " << r["room_id"]
+                                << " | 활성화: " << (r["active"] ? "O" : "X")
+                                << " | 인원: " << r["count"]
+                                << "\n";
+                    }
+                    std::cout << "===============================================================\n\n";
+                    std::cout << "1. 방 생성  2. 방 입장  3. 뒤로가기\n";
+                    int sub; // 선택 담을 변수
+                    std::cout <<"[입력]: ";
+                    std::cin >> sub;
+                    if (sub == 1)
+                    {
+                        std::string pw;
+                        std::cout << "\n[입력] 비밀번호 입력: ";
+                        std::cin >> pw;
+
+                        json create_req;
+                        create_req["type"] = PKT_ROOM_CREATE_REQ;
+                        create_req["payload"] = {{"password", pw}};
+
+                        json create_res = request_to_server(sock, create_req);
+
+                        if (create_res["payload"]["result"] == RES_SUCCESS)
+                        {
+                            int room_id = create_res["payload"]["room_id"];
+                            std::cout << "===============================================================\n";
+                            std::cout << "[안내] 방 생성 성공! \n 방 번호: " << room_id << "\n";
+                            start_chat_receiver(sock);
+                            std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+                            while (true)
+                            {
+                                std::string msg;
+                                {
+                                    std::lock_guard<std::mutex> lock(cout_mutex);
+                                    std::cout << "\r[입력] : ";
+                                    std::cout.flush();
+                                }
+
+                                std::getline(std::cin, msg);
+                                if (msg == "exit")
+                                {
+                                    json exit_req;
+                                    exit_req["type"] = PKT_ROOM_EXIT_REQ;
+                                    std::string out = exit_req.dump() + "\n";
+                                    send(sock, out.c_str(), out.length(), 0);
+                                    stop_chat_receiver();
+                                    break;
+                                }
+                                json chat_req;
+                                chat_req["type"] = PKT_CHAT_MESSAGE;
+                                chat_req["payload"] = {{"message", msg}};
+                                std::string out = chat_req.dump() + "\n";
+                                send(sock, out.c_str(), out.length(), 0);
+                            }
+                        }
+                        else
+                        {
+                            std::cout << "===============================================================\n";
+                            std::cout << "[경고] 방 생성 실패.\n";
+                        }
+                    }
+                    else if (sub == 2)
+                    {
+                        int room_id;
+                        std::string pw;
+                        std::cout << "===============================================================\n";
+                        std::cout << "\n[입력] 입장할 방 번호: ";
+                        std::cin >> room_id;
+                        std::cout << "===============================================================\n";
+                        std::cout << "\n[입력] 비밀번호 입력: ";
+                        std::cin >> pw;
+
+                        json enter_req;
+                        enter_req["type"] = PKT_ROOM_ENTER_REQ;
+                        enter_req["payload"] =
+                        {
+                            {"room_id", room_id},
+                            {"password", pw}
+                        };
+                        json enter_res = request_to_server(sock, enter_req);
+
+                        if (enter_res["payload"]["result"] == RES_SUCCESS)
+                        {
+                            {
+                                std::lock_guard<std::mutex> lock(cout_mutex);
+                                std::cout << "[안내] 방 입장 성공!\n";
+                            }
+
+                            start_chat_receiver(sock);
+                            std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+
+                            while (true)
+                            {
+                                std::string msg;
+
+                                {
+                                    std::lock_guard<std::mutex> lock(cout_mutex);
+                                    std::cout << "(exit 입력 시 퇴장)\n";
+                                    std::cout << "[입력]: ";
+                                }
+
+                                std::getline(std::cin, msg);
+
+                                if (msg == "exit")
+                                {
+                                    json exit_req;
+                                    exit_req["type"] = PKT_ROOM_EXIT_REQ;
+
+                                    std::string out = exit_req.dump() + "\n";
+                                    send(sock, out.c_str(), out.length(), 0);
+
+                                    stop_chat_receiver();
+                                    break;
+                                }
+
+                                json chat_req;
+                                chat_req["type"] = PKT_CHAT_MESSAGE;
+                                chat_req["payload"] = {{"message", msg}};
+
+                                std::string out = chat_req.dump() + "\n";
+                                send(sock, out.c_str(), out.length(), 0);
+                            }
+                        }
+                        else
+                        {
+                            std::cout << "===============================================================\n";
+                            std::cout << "[경고] 입장 실패.\n";
+                        }
+                    }
+                }
             }
             else if (choice == 2)
             {
@@ -211,12 +383,36 @@ int main()
             }
             else if (choice == 3)
             {
-                std::cout <<"개인 설정 \n";
-                break; // 서버랑 통신해서 디비를 업데이트하는 쿼리를 적어야됨
+                std::string new_nickname;
+
+                std::cout << "[입력] 변경할 닉네임: ";
+                std::cin >> new_nickname;
+
+                json nick_change_packet;
+
+                nick_change_packet["type"] = PKT_NICK_CHANGE_REQ; //변경요청
+                nick_change_packet["payload"] =  // 상태 업데이트
+                {
+                    {"nickname", new_nickname}
+                };
+
+                json res = request_to_server(sock, nick_change_packet);
+
+                if (res["payload"]["result"] == RES_SUCCESS)
+                {
+                    std::cout << "[완료] 닉네임이 변경되었습니다.\n";
+                }
+                else if (res["payload"]["result"] == RES_DUPLICATE) // 중복검사
+                {
+                    std::cout << "[경고] 이미 사용 중인 닉네임입니다.\n";
+                }
+                else
+                {
+                    std::cout << "[오류] 닉네임 변경 실패.\n";
+                }
             }
         }
     }
-
     close(sock);
     return 0;
 }

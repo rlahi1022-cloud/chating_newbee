@@ -11,12 +11,12 @@
 #include <mariadb/conncpp.hpp>
 #include "proto.h"
 #include "handle.h" 
+#include "chatingroom.h"
 
 using namespace nlohmann;
 
 std::shared_ptr <sql::Connection> conn = nullptr;
  // db 연결 포인터 : 통로를 연결해줘야됨 -> 초반에 열어두고 입력 검증에 반응해서 검증 및 데이터를 집어넣음 : 회원가입을 위해서 초기화를 시켜줌
-
 // 접속자 명단 : c 배열 대신 map을 사용함
 std:: map <int, std::shared_ptr<ChatClient>> clients;
 std:: mutex clients_mutex; // 여러스레드가 동시에 접근할때 사용하는 뮤텍스
@@ -50,7 +50,7 @@ int main ()
     sockaddr_in addr{};
     addr.sin_family = AF_INET;
     addr.sin_addr.s_addr = htonl(INADDR_ANY);
-    addr.sin_port = htons(5003);
+    addr.sin_port = htons(SERVER_PORT);
 
     bind(server_sock, (struct sockaddr*)&addr, sizeof(addr));
     listen(server_sock, 5);

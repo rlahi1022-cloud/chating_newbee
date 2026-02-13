@@ -1,0 +1,38 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "type": "cppbuild",
+            "label": "Build Server App",
+            "command": "/usr/bin/g++",
+            "args": [
+                "-fdiagnostics-color=always",
+                "-g",
+                "-std=c++11",
+                // 빌드에 필요한 모든 소스 파일을 나열합니다.
+                "/home/lms/Desktop/c++study/server/serve_cplus.cpp",
+                "/home/lms/Desktop/c++study/server/handle.cpp",
+                "/home/lms/Desktop/c++study/server/chatingroom.cpp", // 추가됨!
+                "-o", "/home/lms/Desktop/c++study/server/server_app",
+                "-I/usr/include/mariadb",
+                "-I/usr/include/mariadb/mysql",
+                "-L/usr/lib/x86_64-linux-gnu",
+                "-lmariadbcpp",
+                "-lmariadb",
+                "-lpthread",
+                "-no-pie"
+            ],
+            "options": {
+                "cwd": "/home/lms/Desktop/c++study/server"
+            },
+            "problemMatcher": [
+                "$gcc"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "detail": "서버 전체 소스 빌드 최적화"
+        }
+    ]
+}

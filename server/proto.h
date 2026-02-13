@@ -23,15 +23,12 @@
 /* ============================================================
     시스템 설정 및 제한
    ============================================================ */
-#define SERVER_PORT     5003     // 현재 사용 중인 포트
+#define SERVER_PORT     5010     // 현재 사용 중인 포트
 #define MAX_CLIENT      100     // 접속제한
 #define BUFFER_SIZE     1024    // 버퍼제한
 #define MAX_USER_ID     20      // 아이디제한
 #define MAX_NICKNAME    100     //닉네임길이제한
 
-/* ============================================================
-   패킷 타입 정의 (JSON "type" 필드값)
-   ============================================================ */
 // 사용자 관리 (300번대)
 #define PKT_SIGNUP_REQ     300   // 회원가입 요청
 #define PKT_SIGNUP_RES     301   // 회원가입 응답
@@ -48,23 +45,22 @@
 #define PKT_SETTING_UPDATE_REQ 320 // 통합 설정 변경 요청
 #define PKT_SETTING_UPDATE_RES 322 // 설정 변경 응답
 
-// 채팅방 및 메시지 (100번대)
+// 채팅방  (100번대)
 #define PKT_ROOM_LIST_REQ   102  // 채팅방 목록 요청
 #define PKT_ROOM_LIST_RES   103  // 채팅방 목록 응답
 #define PKT_ROOM_ENTER_REQ  104  // 채팅방 입장 요청
 #define PKT_ROOM_ENTER_RES  105  // 채팅방 입장 응답
 #define PKT_CHAT_MESSAGE    110  // 채팅 메시지 전송
 #define PKT_ROOM_EXIT_REQ   112  // 채팅방 퇴장 요청
+#define PKT_ROOM_EXIT_RES   113  // 채팅방 퇴장 응답
+#define PKT_ROOM_CREATE_REQ   120   // 방 생성 요청
+#define PKT_ROOM_CREATE_RES   121   // 방 생성 응답
 
-/*===========================================================
-            중복검사
-========================================*/
-#define PKT_ID_CHECK_REQ   304   // 아이디 중복 확인 요청
-#define PKT_ID_CHECK_RES   305   // 아이디 중복 확인 응답
-#define PKT_NICK_CHECK_REQ 306   // 닉네임 중복 확인 요청
-#define PKT_NICK_CHECK_RES 307   // 닉네임 중복 확인 응답
-#define PKT_SIGNUP_REQ     300   // 최종 회원가입 요청
-#define PKT_SIGNUP_RES     301   // 최종 회원가입 응답
+// 메시지 시스템 (200번대)
+#define PKT_PRIVATE_MSG_REQ        200   // 개인 메시지 전송 요청
+#define PKT_PRIVATE_MSG_RES        201   // 개인 메시지 전송 응답
+#define PKT_PRIVATE_MSG_LIST_REQ   202   // 받은 메시지 목록 요청
+#define PKT_PRIVATE_MSG_LIST_RES   203   // 받은 메시지 목록 응답
 
 /* ============================================================
    상태 및 결과 코드
@@ -98,8 +94,11 @@ public:
 
     inline void update_from_json(const nlohmann::json& payload) 
     {
-        if (payload.contains("id")) user_id = payload.get<std::string>();
-        if (payload.contains("nickname")) nickname = payload.get<std::string>();
+        if (payload.contains("id"))
+            user_id = payload["id"].get<std::string>();
+
+        if (payload.contains("nickname"))
+            nickname = payload["nickname"].get<std::string>();
     }
 
     inline ~ChatClient()

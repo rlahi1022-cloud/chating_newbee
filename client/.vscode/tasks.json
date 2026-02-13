@@ -1,0 +1,30 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "type": "cppbuild",
+            "label": "Build Client App",
+            "command": "/usr/bin/g++",
+            "args": [
+                "-fdiagnostics-color=always",
+                "-g",
+                "-std=c++11",
+                // 현재 폴더의 모든 cpp 파일을 합쳐서 빌드 (main 누락 방지)
+                "${fileDirname}/*.cpp", 
+                "-o", "${fileDirname}/client_app",
+                "-lpthread"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": [
+                "$gcc"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "detail": "클라이언트 폴더 내의 모든 cpp 파일을 합쳐서 빌드합니다."
+        }
+    ]
+}
