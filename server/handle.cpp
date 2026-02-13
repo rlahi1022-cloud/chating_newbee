@@ -351,6 +351,157 @@ void handle_packet(std::shared_ptr<ChatClient> client, const std::string& msg)
                 }
                 break;
             }
+            // ===============================
+            // 메시지 전송
+            // ===============================
+            case PKT_MSG_SEND_REQ:
+            {
+                res["type"] = PKT_MSG_SEND_RES;
+
+                if (client->state != STATE_LOBBY)
+                {
+                    res["payload"]["result"] = RES_FAIL;
+                    break;
+                }
+
+                auto payload = packet["payload"];
+
+                std::string receiver = payload.value("receiver", "");
+                std::string content  = payload.value("content", "");
+
+                if (receiver.empty() || content.empty())
+                {
+                    res["payload"]["result"] = RES_FAIL;
+                    break;
+                }
+
+                try
+                {
+                    auto pstmt = conn->prepareStatement(
+                        "INSERT INTO messages (sender_id, receiver_id, content) VALUES (?, ?, ?)"
+                    );
+
+                    pstmt->setString(1, client->user_id);
+                    pstmt->setString(2, receiver);
+                    pstmt->setString(3, content);
+                    pstmt->executeUpdate();
+
+                    res["payload"]["result"] = RES_SUCCESS;
+                }
+                catch (...)
+                {
+                    res["payload"]["result"] = RES_FAIL;
+                }
+
+                break;
+            }
+
+            // ===============================
+            // 메시지 목록 조회
+            // ===============================
+            case PKT_MSG_LIST_REQ:
+            {
+                res["type"] = PKT_MSG_LIST_RES;
+
+                if (client->state != STATE_LOBBY)
+                {
+                    res["payload"]["result"] = RES_FAIL;
+                    break;
+                }
+
+                json arr = json::array();
+
+                try
+                {
+                    auto pstmt = conn->prepareStatement(
+                        "SELECT id, sender_id, is_read, created_at FROM messages WHERE receiver_id=? ORDER BY created_at DESC"
+                    );
+
+                    pstmt->setString(1, client->user_id);
+
+                    auto rs = pstmt->executeQuery();
+
+                    while (rs->next())
+                    {
+                        json msg;
+                        msg["msg_id"] = rs->getInt("id");
+                        msg["sender"] = rs->getString("sender_id");
+                        msg["is_read"] = rs->getBoolean("is_read");
+                        msg["created_at"] = rs->getString("created_at");
+
+                        arr.push_back(msg);
+                    }
+
+                    res["payload"]["messages"] = arr;
+                    res["payload"]["result"] = RES_SUCCESS;
+                }
+                catch (...)
+                {
+                    res["payload"]["result"] = RES_FAIL;
+                }
+
+                break;
+            }
+            // ===============================
+            // 메시지 읽기
+            // ===============================
+            case PKT_MSG_READ_REQ:
+            {
+                res["type"] = PKT_MSG_READ_RES;
+
+                if (client->state != STATE_LOBBY)
+                {
+                    res["payload"]["result"] = RES_FAIL;
+                    break;
+                }
+
+                int msg_id = packet["payload"].value("msg_id", 0);
+
+                if (msg_id == 0)
+                {
+                    res["payload"]["result"] = RES_FAIL;
+                    break;
+                }
+
+                try
+                {
+                    // 내용 가져오기
+                    auto pstmt = conn->prepareStatement(
+                        "SELECT content FROM messages WHERE id=? AND receiver_id=?"
+                    );
+
+                    pstmt->setInt(1, msg_id);
+                    pstmt->setString(2, client->user_id);
+
+                    auto rs = pstmt->executeQuery();
+
+                    if (rs->next())
+                    {
+                        std::string content = rs->getString("content").c_str();
+
+                        res["payload"]["content"] = content;
+                        res["payload"]["result"] = RES_SUCCESS;
+
+                        // 읽음 처리
+                        auto update = conn->prepareStatement(
+                            "UPDATE messages SET is_read=1 WHERE id=?"
+                        );
+
+                        update->setInt(1, msg_id);
+                        update->executeUpdate();
+                    }
+                    else
+                    {
+                        res["payload"]["result"] = RES_FAIL;
+                    }
+                }
+                catch (...)
+                {
+                    res["payload"]["result"] = RES_FAIL;
+                }
+
+                break;
+            }
         }
         // 여기서 한 번만 전송 : 각 프로토마다 보낼시 꼬일수있음
         if (!res.empty()) // 채팅방용 수신처리 : 통신이 비었으면 반응 안하겠금!

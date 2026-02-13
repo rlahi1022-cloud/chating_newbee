@@ -12,6 +12,8 @@ json request_to_server(int sock, const json& req_packet)
 {
     try
     {
+        int expected_type = req_packet["type"].get<int>() + 1;
+
         std::string send_msg = req_packet.dump() + "\n";
         send(sock, send_msg.c_str(), send_msg.length(), 0);
 
@@ -40,19 +42,13 @@ json request_to_server(int sock, const json& req_packet)
 
                 int type = pkt.value("type", 0);
 
-                //ENTER_RES일 때만 반환
-                if (type == PKT_ROOM_ENTER_RES)
-                {
-                    return pkt;
-                }
-
                 // 채팅 메시지는 무시
                 if (type == PKT_CHAT_MESSAGE)
-                {
                     continue;
-                }
-                // 다른 응답이면 그냥 반환
-                return pkt;
+
+                // 내가 보낸 요청의 응답만 반환
+                if (type == expected_type)
+                    return pkt;
             }
         }
     }

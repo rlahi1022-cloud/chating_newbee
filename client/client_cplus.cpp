@@ -378,8 +378,123 @@ int main()
             }
             else if (choice == 2)
             {
-                std::cout << "메시지\n";
-                break; // 아직 통신은 없음
+                while (true)
+                {
+                    std::cout << "============================\n";
+                    std::cout << " 메시지 메뉴\n";
+                    std::cout << "============================\n";
+                    std::cout << "1. 메시지 목록\n";
+                    std::cout << "2. 메시지 보내기\n";
+                    std::cout << "3. 뒤로가기\n";
+                    std::cout << "입력: ";
+
+                    int sub;
+                    std::cin >> sub;
+
+                    if (sub == 3)
+                        break;
+
+                    // ============================
+                    // 1. 메시지 목록
+                    // ============================
+                    if (sub == 1)
+                    {
+                        json list_req;
+                        list_req["type"] = PKT_MSG_LIST_REQ;
+
+                        json res = request_to_server(sock, list_req);
+
+                        if (res.value("type", 0) == PKT_MSG_LIST_RES &&
+                            res["payload"].value("result", "") == RES_SUCCESS)
+                        {
+                            auto messages = res["payload"]["messages"];
+
+                            if (messages.empty())
+                            {
+                                std::cout << "메시지가 없습니다.\n";
+                                continue;
+                            }
+
+                            std::cout << "===== 메시지 목록 =====\n";
+
+                            for (auto& m : messages)
+                            {
+                                std::cout << "번호: " << m.value("msg_id", 0)
+                                        << " | 보낸사람: " << m.value("sender", "")
+                                        << " | 읽음: "
+                                        << (m.value("is_read", false) ? "O" : "X")
+                                        << "\n";
+                            }
+
+                            std::cout << "읽을 메시지 번호 입력 (0 = 취소): ";
+                            int msg_id;
+                            std::cin >> msg_id;
+
+                            if (msg_id == 0)
+                                continue;
+
+                            json read_req;
+                            read_req["type"] = PKT_MSG_READ_REQ;
+                            read_req["payload"] = { {"msg_id", msg_id} };
+
+                            json read_res = request_to_server(sock, read_req);
+
+                            if (read_res.value("type", 0) == PKT_MSG_READ_RES &&
+                                read_res["payload"].value("result", "") == RES_SUCCESS)
+                            {
+                                std::cout << "===== 메시지 내용 =====\n";
+                                std::cout << read_res["payload"]
+                                                .value("content", "")
+                                        << "\n";
+                            }
+                            else
+                            {
+                                std::cout << "메시지 읽기 실패\n";
+                            }
+                        }
+                        else
+                        {
+                            std::cout << "목록 조회 실패\n";
+                        }
+                    }
+
+                    // ============================
+                    // 2. 메시지 보내기
+                    // ============================
+                    else if (sub == 2)
+                    {
+                        std::string receiver;
+                        std::string content;
+
+                        std::cout << "받는 사람 ID: ";
+                        std::cin >> receiver;
+
+                        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+
+                        std::cout << "메시지 내용: ";
+                        std::getline(std::cin, content);
+
+                        json send_req;
+                        send_req["type"] = PKT_MSG_SEND_REQ;
+                        send_req["payload"] =
+                        {
+                            {"receiver", receiver},
+                            {"content", content}
+                        };
+
+                        json send_res = request_to_server(sock, send_req);
+
+                        if (send_res.value("type", 0) == PKT_MSG_SEND_RES &&
+                            send_res["payload"].value("result", "") == RES_SUCCESS)
+                        {
+                            std::cout << "메시지 전송 완료\n";
+                        }
+                        else
+                        {
+                            std::cout << "메시지 전송 실패\n";
+                        }
+                    }
+                }
             }
             else if (choice == 3)
             {

@@ -56,11 +56,16 @@
 #define PKT_ROOM_CREATE_REQ   120   // 방 생성 요청
 #define PKT_ROOM_CREATE_RES   121   // 방 생성 응답
 
-// 메시지 시스템 (200번대)
-#define PKT_PRIVATE_MSG_REQ        200   // 개인 메시지 전송 요청
-#define PKT_PRIVATE_MSG_RES        201   // 개인 메시지 전송 응답
-#define PKT_PRIVATE_MSG_LIST_REQ   202   // 받은 메시지 목록 요청
-#define PKT_PRIVATE_MSG_LIST_RES   203   // 받은 메시지 목록 응답
+// =========================
+// 개인 메시지 (200번대)
+// =========================
+#define PKT_MSG_SEND_REQ     200 // 메시지 보내기 요청
+#define PKT_MSG_SEND_RES     201 // 메시지 보내기 응답
+#define PKT_MSG_LIST_REQ     202 // 내 메시지 목록 요청
+#define PKT_MSG_LIST_RES     203 // 내 메시지 목록 응답
+#define PKT_MSG_READ_REQ     204 // 메시지 읽기 요청
+#define PKT_MSG_READ_RES     205 // 메시지 읽기 응답
+
 
 /* ============================================================
    상태 및 결과 코드
