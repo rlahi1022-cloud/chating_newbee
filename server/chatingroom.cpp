@@ -161,3 +161,7 @@ void ChatRoom::broadcast(const std::string& message)
     }
 }
 
+const std::set<int>& ChatRoom::get_members() const
+{
+    return members;
+}

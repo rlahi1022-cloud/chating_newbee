@@ -25,9 +25,8 @@ class ChatRoom
         int member_count();
         int get_host();
         void broadcast(const std::string& message);
-
-    private:
-    void reset();
+        const std::set<int>& get_members() const;
+        void reset();
 };
 
 extern std::vector<ChatRoom> rooms;

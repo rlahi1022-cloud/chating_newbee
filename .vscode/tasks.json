@@ -22,6 +22,8 @@
                 "-lpthread",
                 "-lmariadbcpp",
                 "-lmariadb"
+                "-lssl",
+                "-lcrypto"
             ],
             "options": {
                 "cwd": "${workspaceFolder}/server"

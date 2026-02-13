@@ -1,6 +1,8 @@
 #include <iostream>
 #include <string>
 #include <arpa/inet.h>
+#include <algorithm>
+#include <cctype>
 #include <unistd.h>
 #include <nlohmann/json.hpp> // json을 쓰기위해서 필요한 라이브러리
 #include "../server/proto.h"
@@ -56,4 +58,20 @@ json request_to_server(int sock, const json& req_packet)
     {
         return { {"type", "ERROR"}, {"payload", {{"result", "fail"}}} };
     }
+}
+// 패스워드 검증
+bool is_valid_password(const std::string& pw)
+{
+    if (pw.length() < 6) return false;
+
+    bool has_alpha = false;
+    bool has_digit = false;
+
+    for (char c : pw)
+    {
+        if (std::isalpha(c)) has_alpha = true;
+        if (std::isdigit(c)) has_digit = true;
+    }
+
+    return has_alpha && has_digit;
 }

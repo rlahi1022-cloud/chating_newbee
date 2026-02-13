@@ -56,6 +56,7 @@
 #define PKT_ROOM_CREATE_REQ   120   // 방 생성 요청
 #define PKT_ROOM_CREATE_RES   121   // 방 생성 응답
 
+
 // =========================
 // 개인 메시지 (200번대)
 // =========================
@@ -65,6 +66,10 @@
 #define PKT_MSG_LIST_RES     203 // 내 메시지 목록 응답
 #define PKT_MSG_READ_REQ     204 // 메시지 읽기 요청
 #define PKT_MSG_READ_RES     205 // 메시지 읽기 응답
+#define PKT_ROOM_DESTROY_REQ   206 // 방폭파 요청
+#define PKT_ROOM_DESTROY_RES   207 // 방 폭파 응답
+#define PKT_WHISPER_REQ   208 // 귓속말 요청
+#define PKT_WHISPER_RES   209 // 귓속말 응답
 
 
 /* ============================================================
